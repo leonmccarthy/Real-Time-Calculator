@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.material.button.MaterialButton;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -73,8 +75,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         MaterialButton button = (MaterialButton) view;
-        String text = button.getText().toString();
-        solutionTv.setText(text);
+        String buttonText = button.getText().toString();
+//        solutionTv.setText(text);
+        String dataToCalculate = solutionTv.getText().toString();
+
+//        clear everything
+        if(buttonText.equals("AC")){
+            solutionTv.setText("0");
+            resultTv.setText("");
+            return;
+        }
+//        equals
+        if(buttonText.equals("=")){
+            resultTv.setText(solutionTv.getText());
+            return;
+        }
+//        clear previous
+        if (buttonText.equals("C")){
+            dataToCalculate = dataToCalculate.substring(0, dataToCalculate.length()-1);
+        }else {
+//        concatinate data to calculate with button text
+            dataToCalculate = dataToCalculate + buttonText;
+        }
+
+        solutionTv.setText(dataToCalculate);
+
+        String finalAnswer = getResult(dataToCalculate);
+
+        if(!finalAnswer.equals("Err")){
+            solutionTv.setText(finalAnswer);
+        }
+    }
+
+    String getResult(String answer){
+        try {
+            Context context = Context.enter();context.setOptimizationLevel(-1);
+            Scriptable scriptable = context.initStandardObjects();
+            String finalAnswer = context.evaluateString(scriptable, answer, "Javascript", 1, null).toString();
+
+            if (finalAnswer.endsWith(".0")){
+                finalAnswer = finalAnswer.replace(".0", "");
+            }
+            return finalAnswer;
+        } catch (Exception e){
+            return  "Err";
+        }
     }
 
 }
